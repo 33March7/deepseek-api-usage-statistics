@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    /* 主题防闪变: 渲染前先按记忆/系统偏好设置主题 */
+    try {
+      var _t = localStorage.getItem("theme");
+      if (!_t) _t = window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      document.documentElement.dataset.theme = _t;
+    } catch (e) {}
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSeek 用量统计</title>
+  <link rel="stylesheet" href="/web/style.css?v=7">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" id="appLogo"><img src="/web/logo.png" alt=""></div>
+      <h1>DeepSeek 用量统计</h1>
+    </div>
+    <div class="topbar-right">
+      <button class="btn ghost icon-btn" id="btnTheme" title="切换深浅色主题">☾</button>
+      <span class="badge" id="modeBadge">实时模式</span>
+      <span class="last-sync" id="lastSync">尚未同步</span>
+      <button class="btn ghost hidden" id="btnLogout">退出登录</button>
+      <button class="btn ghost" id="btnLogin">登录</button>
+      <button class="btn primary" id="btnSync">
+        <svg class="sync-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg> 立即同步
+      </button>
+    </div>
+  </header>
+
+  <div class="banner hidden" id="banner">
+    <span class="banner-icon">⚠</span>
+    <span id="bannerText"></span>
+    <button class="btn small" id="bannerBtn">去登录</button>
+  </div>
+
+  <main>
+    <!-- 统计卡片 -->
+    <section class="cards" id="cards">
+      <div class="card">
+        <div class="card-label">累计消耗 Tokens</div>
+        <div class="card-value" id="cTotalTokens">—</div>
+        <div class="card-sub" id="cTotalTokensSub"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">累计花费</div>
+        <div class="card-value" id="cTotalCost">—</div>
+        <div class="card-sub" id="cTotalCostSub"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">本月消耗</div>
+        <div class="card-value" id="cMonthTokens">—</div>
+        <div class="card-sub" id="cMonthSub"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">今日用量</div>
+        <div class="card-value" id="cTodayTokens">—</div>
+        <div class="card-sub" id="cTodaySub"></div>
+      </div>
+    </section>
+
+    <!-- 图表区 -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>每日用量走势</h2>
+        <div class="seg" id="dailyViewSeg">
+          <button data-view="model" class="active">按模型</button>
+          <button data-view="type">按计费类型</button>
+          <button data-view="key">按 API Key</button>
+        </div>
+        <div class="seg" id="dailyRangeSeg">
+          <button data-days="7">7天</button>
+          <button data-days="30" class="active">30天</button>
+          <button data-days="90">90天</button>
+          <button data-days="180">180天</button>
+          <button data-days="365">365天</button>
+          <button data-days="0">全部</button>
+        </div>
+      </div>
+      <div id="dailyLegend" class="chart-legend"></div>
+      <div id="chartDaily" class="chart chart-lg"></div>
+    </section>
+
+    <section class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>各模型占比</h2>
+          <div class="seg" id="modelsMetricSeg">
+            <button data-metric="tokens" class="active">按 Tokens</button>
+            <button data-metric="cost">按花费</button>
+          </div>
+        </div>
+        <div class="donut-wrap">
+          <div id="chartModels" class="chart chart-md"></div>
+          <div id="modelsLegend" class="chart-legend vertical"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>累计趋势</h2>
+          <div class="seg" id="cumulativeMetricSeg">
+            <button data-metric="tokens" class="active">Tokens</button>
+            <button data-metric="cost">花费</button>
+          </div>
+        </div>
+        <div id="chartCumulative" class="chart chart-md"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>用量热力图</h2>
+        <div class="seg" id="heatmapMetricSeg">
+          <button data-metric="tokens" class="active">按 Tokens</button>
+          <button data-metric="cost">按花费</button>
+        </div>
+      </div>
+      <div id="chartHeatmap" class="chart chart-heat"></div>
+    </section>
+
+    <!-- 分时用量(小时级) -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>分时用量</h2>
+        <span class="hint" id="hourlyRange">—</span>
+        <div class="seg" id="hourlyRangeSeg">
+          <button data-days="7">7天</button>
+          <button data-days="30" class="active">30天</button>
+          <button data-days="90">90天</button>
+          <button data-days="365">365天</button>
+        </div>
+      </div>
+      <p class="panel-tip">所选范围内所有日的同一小时用量加总 · 分时数据平台仅保留当天与昨天 · 点击上方「每日用量走势」的柱子可查看当日 24 小时明细</p>
+      <div id="chartHourly" class="chart chart-md"></div>
+    </section>
+
+    <!-- 明细/日志 -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>数据与同步</h2>
+        <span class="hint" id="dataRange">—</span>
+        <button class="btn ghost" id="btnExport">导出数据</button>
+        <button class="btn ghost" id="btnImport">导入数据</button>
+        <button class="btn danger small" id="btnClearData">清空全部数据</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" class="hidden">
+      <div class="sync-log" id="syncLog">
+        <div class="empty">暂无同步记录</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    数据仅存于本地 <code>data/deepseek_usage.db</code> · 仅向 deepseek.com 官方域名发起请求 ·
+    登录凭证仅用于拉取你自己的用量数据
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- 手动填写 token 弹窗 -->
+  <div class="modal-mask hidden" id="tokenModal">
+    <div class="modal">
+      <h3>手动填写登录凭证</h3>
+      <p class="modal-tip">1. 在浏览器中打开 <code>platform.deepseek.com</code> 并登录<br>
+         2. 按 F12 打开开发者工具 → 控制台(Console)<br>
+         3. 输入 <code>JSON.parse(localStorage.userToken).value</code> 并回车<br>
+         4. 把输出的内容(很长的一串字符)复制粘贴到下方</p>
+      <textarea id="tokenInput" rows="3" placeholder="粘贴 userToken..."></textarea>
+      <div class="modal-actions">
+        <button class="btn ghost" id="tokenCancel">取消</button>
+        <button class="btn primary" id="tokenSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 清空数据确认弹窗 -->
+  <div class="modal-mask hidden" id="clearModal">
+    <div class="modal">
+      <h3>清空全部本地数据?</h3>
+      <p class="modal-tip" style="color:var(--danger)">
+        将删除本地数据库中的全部用量、费用记录与同步日志(共 <span id="clearCount">—</span>),<br>
+        <b>此操作不可恢复</b>。登录凭证与余额缓存也会清除,本地数据需重新「立即同步」拉取。
+      </p>
+      <div class="modal-actions">
+        <button class="btn ghost" id="clearCancel">取消</button>
+        <button class="btn danger" id="clearConfirm">确认清空</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 账号变更确认弹窗 -->
+  <div class="modal-mask hidden" id="accountModal">
+    <div class="modal">
+      <h3>检测到登录账号变更</h3>
+      <p class="modal-tip" style="color:var(--warn)">
+        当前登录的 DeepSeek 账号与本地数据所属账号不一致(API Key 集合不同),同步已中止,<br>
+        <b>本地历史数据未受影响</b>。请选择处理方式:
+      </p>
+      <div class="modal-actions">
+        <button class="btn ghost" id="accountCancel">取消</button>
+        <button class="btn danger" id="accountClearSync">清空数据并同步新账号</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 分时详情弹窗(点击每日用量走势柱状图; 点击空白处关闭) -->
+  <div class="modal-mask hidden" id="hourlyModal">
+    <div class="modal modal-wide">
+      <h3 id="hourlyModalTitle">分时用量</h3>
+      <p class="modal-tip" id="hourlyModalSub"></p>
+      <div class="seg modal-seg" id="hourlyDetailViewSeg">
+        <button data-view="type" class="active">按计费类型</button>
+        <button data-view="model">按模型</button>
+        <button data-view="key">按 API Key</button>
+      </div>
+      <div id="chartHourlyDetail" class="chart chart-sm"></div>
+      <div class="subchart-label">请求次数</div>
+      <div id="chartHourlyDetailReq" class="chart chart-req"></div>
+      <div class="subchart-label">费用</div>
+      <div id="chartHourlyDetailCost" class="chart chart-req"></div>
+    </div>
+  </div>
+
+  <!-- 导入数据确认弹窗 -->
+  <div class="modal-mask hidden" id="importModal">
+    <div class="modal">
+      <h3>导入数据备份?</h3>
+      <p class="modal-tip" style="color:var(--warn)" id="importInfo">—</p>
+      <p class="modal-tip">导入将<b>覆盖</b>当前全部用量 / 费用 / 分时数据(不可恢复, 建议先导出备份)。<br>
+        登录凭证与账号信息不受影响。</p>
+      <div class="modal-actions">
+        <button class="btn ghost" id="importCancel">取消</button>
+        <button class="btn danger" id="importConfirm">确认导入</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/web/echarts.min.js"></script>
+  <script src="/web/app.js?v=7"></script>
+</body>
+</html>

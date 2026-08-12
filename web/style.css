@@ -1,0 +1,301 @@
+/* DeepSeek 用量统计 — 苹果风格双主题(深色/浅色) */
+:root,
+[data-theme="dark"] {
+  --bg: #000000;
+  --bg-soft: #0d0d0d;
+  --card: #1c1c1e;
+  --card-border: #2c2c2e;
+  --text: #f5f5f7;
+  --text-dim: #a1a1a6;
+  --text-faint: #6e6e73;
+  --accent: #48484a;                    /* 交互强调色: 中性深灰 */
+  --accent-2: #6e6e73;
+  --accent-soft: rgba(160, 160, 165, .18);
+  --accent-glow: rgba(160, 160, 165, .3);
+  --chart-accent: #98989d;              /* 图表主线色: 浅灰 */
+  --chart-orange: #ff9f0a;              /* 分时请求数折线: 橙 */
+  --chart-gold: #ffd60a;                /* 分时费用柱状图: 金 */
+  --green: #30d158;
+  --danger: #ff453a;
+  --warn: #ffd60a;
+  --mask: rgba(0, 0, 0, .55);
+  --shadow: rgba(0, 0, 0, .5);
+  --scroll-thumb: #3a3a3c;
+  --scroll-track: transparent;
+  --radius: 12px;
+}
+
+[data-theme="light"] {
+  --bg: #f5f5f7;
+  --bg-soft: #ebebee;
+  --card: #ffffff;
+  --card-border: #d2d2d7;
+  --text: #1d1d1f;
+  --text-dim: #6e6e73;
+  --text-faint: #a1a1a6;
+  --accent: #8e8e93;
+  --accent-2: #c7c7cc;
+  --accent-soft: rgba(142, 142, 147, .14);
+  --accent-glow: rgba(142, 142, 147, .28);
+  --chart-accent: #6e6e73;
+  --chart-orange: #d67200;              /* 浅色主题下加深保证对比度 */
+  --chart-gold: #b25000;                /* 浅色主题费用色: 深金棕 */
+  --green: #248a3d;
+  --danger: #ff3b30;
+  --warn: #b25000;
+  --mask: rgba(0, 0, 0, .35);
+  --shadow: rgba(0, 0, 0, .18);
+  --scroll-thumb: #c7c7cc;
+  --scroll-track: transparent;
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ---------- 顶栏 ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: linear-gradient(180deg, var(--bg-soft), var(--bg));
+  border-bottom: 1px solid var(--card-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(8px);
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  overflow: hidden; flex-shrink: 0;
+  box-shadow: 0 4px 18px var(--accent-glow);
+}
+/* 自定义图标: 放入 web/logo.png(建议 38x38 或同比例)即替换默认渐变占位块 */
+.logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.brand h1 { font-size: 17px; font-weight: 600; letter-spacing: .3px; }
+
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+
+.badge {
+  font-size: 12px; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--card-border); color: var(--text-dim);
+  background: var(--bg-soft);
+}
+.badge.mock { color: var(--warn); border-color: rgba(251, 191, 36, .4); }
+.badge.live { color: var(--green); border-color: rgba(57, 211, 83, .35); }
+
+.last-sync { font-size: 12px; color: var(--text-faint); }
+
+/* ---------- 按钮 ---------- */
+.btn {
+  border: none; border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 500; padding: 7px 16px;
+  transition: all .15s ease; display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit;
+}
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent); box-shadow: 0 4px 14px var(--accent-glow); }
+.btn.primary:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+.btn.ghost { background: transparent; border: 1px solid var(--card-border); color: var(--text-dim); }
+.btn.ghost:hover { color: var(--text); border-color: var(--text-faint); }
+.btn.danger { background: transparent; border: 1px solid rgba(248, 113, 113, .45); color: var(--danger); }
+.btn.danger:hover { background: rgba(248, 113, 113, .12); border-color: var(--danger); }
+.btn.small { padding: 4px 12px; font-size: 12px; }
+.icon-btn {
+  width: 34px; height: 32px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 15px; line-height: 1;
+}
+.sync-icon { width: 15px; height: 15px; display: inline-block; flex-shrink: 0; }
+.sync-icon.spinning { animation: spin 1s linear infinite; transform-origin: 50% 50%; }
+
+/* ---------- 横幅 ---------- */
+.banner {
+  margin: 14px 24px 0; padding: 10px 16px; border-radius: var(--radius);
+  background: rgba(251, 191, 36, .1); border: 1px solid rgba(251, 191, 36, .35);
+  display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--warn);
+}
+.banner.error { background: rgba(248, 113, 113, .1); border-color: rgba(248, 113, 113, .4); color: var(--danger); }
+.banner .btn { margin-left: auto; }
+.hidden { display: none !important; }
+
+/* ---------- 主体 ---------- */
+main { padding: 20px 24px 40px; max-width: 1500px; margin: 0 auto; }
+
+/* 统计卡片 */
+.cards {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px;
+}
+.card {
+  background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.card-label { font-size: 12px; color: var(--text-dim); }
+.card-value { font-size: 26px; font-weight: 700; margin-top: 6px; letter-spacing: .3px;
+  font-variant-numeric: tabular-nums; }
+.card-sub { font-size: 12px; color: var(--text-faint); margin-top: 6px; }
+.card-sub .ok { color: var(--green); }
+.card-sub .warn { color: var(--warn); }
+
+/* 面板 */
+.panel {
+  background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius);
+  padding: 16px 18px; margin-bottom: 18px;
+}
+.panel-head {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.panel-head h2 { font-size: 14px; font-weight: 600; }
+.hint { font-size: 12px; color: var(--text-faint); font-weight: 400; }
+.panel-head .hint { margin-left: auto; }
+
+.seg {
+  display: inline-flex; background: var(--bg-soft); border: 1px solid var(--card-border);
+  border-radius: 8px; padding: 2px; gap: 2px;
+}
+.seg button {
+  border: none; background: transparent; color: var(--text-dim); cursor: pointer;
+  font-size: 12px; padding: 4px 12px; border-radius: 6px; font-family: inherit;
+  transition: all .12s ease;
+}
+.seg button:hover { color: var(--text); }
+.seg button.active { background: var(--accent-soft); color: var(--text); font-weight: 600; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.grid-2 .panel { display: flex; flex-direction: column; }   /* 面板等高, 图表填满剩余空间 */
+@media (max-width: 1100px) { .grid-2 { grid-template-columns: 1fr; } .cards { grid-template-columns: repeat(2, 1fr); } }
+
+.chart { width: 100%; }
+.chart-lg { height: 320px; }
+.chart-md { height: 300px; }
+#chartCumulative { flex: 1; height: auto; min-height: 300px; }   /* 填满面板剩余高度, 避免留白 */
+.chart-heat { padding: 6px 0; }
+
+/* 自定义图例(点击单独显示 / 再点多选 / 点唯一项恢复全部; 外观同 ECharts 默认图例) */
+.chart-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; margin: 0 0 8px; }
+.chart-legend.vertical { flex-direction: column; align-items: flex-start; gap: 10px; margin: 0; padding: 8px 0; }
+.donut-wrap { flex: 1; display: flex; align-items: center; justify-content: center; gap: 18px; padding-top: 18px; padding-bottom: 10px; }
+.donut-wrap #chartModels { flex: 0 1 auto; width: 300px; height: 300px; min-width: 0; }
+.lg-item {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-dim); cursor: pointer;
+  user-select: none; transition: opacity .15s ease;
+}
+.lg-item:hover { color: var(--text); }
+.lg-item.dim { opacity: .3; }
+.lg-swatch { width: 15px; height: 15px; border-radius: 3px; flex-shrink: 0; }
+
+/* 热力图方形网格矩阵(GitHub 风格: 顶部月份 + 左侧星期) */
+.heatmap-wrap { position: relative; display: flex; flex-direction: column; align-items: flex-start; padding: 4px 8px; }
+.hm-months { display: flex; gap: 3px; margin-left: 30px; height: 18px; }
+.hm-month {
+  width: 19px; font-size: 11px; color: var(--text-dim); line-height: 18px;
+  white-space: nowrap; overflow: visible;
+}
+.hm-month-empty { visibility: hidden; }
+.hm-body { display: flex; gap: 8px; }
+.hm-days { display: flex; flex-direction: column; gap: 3px; width: 24px; }
+.hm-day { height: 19px; font-size: 10px; color: var(--text-faint); line-height: 19px; text-align: right; }
+.heatmap-grid { display: flex; gap: 3px; }
+.hm-tip {
+  position: fixed; display: none; pointer-events: none; z-index: 50;
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 6px;
+  padding: 6px 10px; font-size: 12px; color: var(--text); line-height: 1.6;
+  white-space: pre-line; box-shadow: 0 6px 20px var(--shadow);
+  max-width: 240px;
+}
+
+/* 图表 tooltip 明细行: 名称靠左, 数值右对齐 */
+.tip-row { display: flex; justify-content: space-between; gap: 18px; align-items: baseline; }
+.tip-name { white-space: nowrap; }
+.tip-val { text-align: right; font-variant-numeric: tabular-nums; }
+.hm-col { display: flex; flex-direction: column; gap: 3px; }
+.hm-cell {
+  width: 19px; height: 19px; border-radius: 3px;
+  transition: transform .08s ease;
+}
+.hm-cell:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .35);
+  position: relative; z-index: 2;
+}
+.hm-future { visibility: hidden; }   /* 当前周今天之后的格子: 不显示 */
+
+/* 同步日志 */
+.sync-log { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
+.sync-log .empty { color: var(--text-faint); font-size: 13px; padding: 8px 0; }
+.log-row {
+  display: flex; align-items: center; gap: 10px; font-size: 12.5px;
+  padding: 6px 10px; border-radius: 8px; background: var(--bg-soft);
+}
+.log-row .time { color: var(--text-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.log-row .msg { color: var(--text-dim); flex: 1; }
+.log-row.ok { border-left: 3px solid var(--green); }
+.log-row.error { border-left: 3px solid var(--danger); }
+.log-row.running { border-left: 3px solid var(--accent); }
+
+/* 底部 */
+footer {
+  text-align: center; color: var(--text-faint); font-size: 12px;
+  padding: 12px 24px 24px; border-top: 1px solid var(--card-border);
+}
+footer code { background: var(--bg-soft); padding: 1px 6px; border-radius: 4px; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--card); color: var(--text); border: 1px solid var(--card-border);
+  padding: 10px 20px; border-radius: 10px; font-size: 13px;
+  box-shadow: 0 8px 30px var(--shadow); opacity: 0; pointer-events: none;
+  transition: all .25s ease; z-index: 100; max-width: 70vw;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { border-color: rgba(248, 113, 113, .5); }
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* 弹窗 */
+.modal-mask {
+  position: fixed; inset: 0; background: var(--mask); z-index: 90;
+  display: flex; align-items: center; justify-content: center; backdrop-filter: blur(3px);
+}
+.modal {
+  width: 520px; max-width: 92vw; background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 14px; padding: 22px; box-shadow: 0 20px 60px var(--shadow);
+  max-height: calc(100vh - 24px); overflow-y: auto;   /* 内容超高时可滚动 */
+}
+.modal h3 { font-size: 15px; margin-bottom: 10px; }
+.modal-tip { font-size: 12.5px; color: var(--text-dim); line-height: 1.8; margin-bottom: 12px; }
+.modal-tip code { background: var(--bg-soft); padding: 1px 6px; border-radius: 4px; }
+.modal textarea {
+  width: 100%; background: var(--bg-soft); border: 1px solid var(--card-border);
+  border-radius: 8px; color: var(--text); padding: 10px; font-size: 12.5px;
+  resize: vertical; font-family: Consolas, monospace; outline: none;
+}
+.modal textarea:focus { border-color: var(--accent); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+.modal-wide { width: 760px; }   /* 分时详情弹窗(含 24 小时图表) */
+.chart-sm { height: 155px; }
+.chart-req { height: 155px; margin-top: 10px; }   /* 弹窗内请求/费用柱状图(与 tokens 图等高) */
+.subchart-label { font-size: 12px; color: var(--text-faint); margin-top: 12px; }
+.modal-seg { margin-bottom: 10px; }   /* 弹窗内视图切换按钮组 */
+
+/* 面板说明文字(分时用量等) */
+.panel-tip { font-size: 12px; color: var(--text-faint); line-height: 1.7; margin: -4px 0 10px; }
